@@ -17,6 +17,7 @@ from itertools import product
 from DMpy.utils import *
 from DMpy.logp import *
 from sklearn.metrics import r2_score
+from scipy.stats import pearsonr #KB
 import copy
 import inspect
 
@@ -907,7 +908,7 @@ class DMModel():
         if self.logp_function == 'r2' or data_type == 'continuous':
 
             self.BIC_individual = bic_regression(self._pymc3_model.vars, 1, o, -logp_results['logp'], individual=True)
-            self.AIC_individual = bic_regression(self._pymc3_model.vars, 1, o, -logp_results['logp'], individual=True) 
+            self.AIC_individual = bic_regression(self._pymc3_model.vars, 1, o, -logp_results['logp'], individual=True)
 
         if self.logp_function == 'll' or data_type == 'discrete':
             self.BIC_individual = bic(self._pymc3_model.vars, 1, o, logp_results['logp'], individual=True)
@@ -1380,9 +1381,11 @@ class DMModel():
                                         s=self.parameter_table[p.replace('mean_', 'sd_')] * 500)
                     f.colorbar(points, ax=ax)
             else:
-
+                # KB: change plot visuals
+                # sns.regplot(x=self.parameter_table[p.replace('mean_', '') + '_sim'], y=self.parameter_table[p], ax=ax,
+                #             scatter=regplot_scatter, scatter_kws={'alpha': alpha})
                 sns.regplot(x=self.parameter_table[p.replace('mean_', '') + '_sim'], y=self.parameter_table[p], ax=ax,
-                            scatter=regplot_scatter, scatter_kws={'alpha': alpha})
+                            scatter=regplot_scatter, scatter_kws={'alpha': 0.8, 's':3})
                 if by:
                     points = ax.scatter(self.parameter_table[p.replace('mean_', '') + '_sim'], self.parameter_table[p], alpha=0.3,
                                         c=self.parameter_table[by + '_sim'], cmap='plasma',
@@ -1394,9 +1397,15 @@ class DMModel():
             ax.plot(eq_line_range, eq_line_range, linestyle='--', color='black')
             ax.set_xlabel('Simulated {0}'.format(p), fontweight=fontweight)
             ax.set_ylabel('Estimated {0}'.format(p), fontweight=fontweight)
+            # KB: change to r value
+            # ax.set_title('{0}\n'
+            #              'R2 = {1}'.format(p, np.round(r2_score(self.parameter_table[p.replace('mean_', '') + '_sim'],
+            #                                               self.parameter_table[p]), 2)), fontweight=fontweight)
+            r_val, p_val = pearsonr(self.parameter_table[p.replace('mean_', '') + '_sim'],
+                                            self.parameter_table[p])
+            print(f"Pearson's r: {r_val}                p value: {p_val}")
             ax.set_title('{0}\n'
-                         'R2 = {1}'.format(p, np.round(r2_score(self.parameter_table[p.replace('mean_', '') + '_sim'],
-                                                          self.parameter_table[p]), 2)), fontweight=fontweight)
+                         'R = {1}'.format(p, np.round(r_val, 6)), fontweight=fontweight)
 
             sim_min = np.min(self.parameter_table[p.replace('mean_', '') + '_sim'])
             sim_max = np.max(self.parameter_table[p.replace('mean_', '') + '_sim'])
