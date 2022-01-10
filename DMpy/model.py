@@ -256,7 +256,7 @@ class _PyMCModel(Continuous):
 
         except TypeError as e:
             # Translate PyMC3 / theano error messages
-            if 'takes exactly' in e.message:
+            if 'takes exactly' in str(e):
                 # Catch incorrect number of arguments errors
                 n_inputs_provided = len(self.model_inputs)
                 n_dynamic_provided = len(self.dynamic_parameters_reshaped)
@@ -267,13 +267,13 @@ class _PyMCModel(Continuous):
                                                                  2 + n_inputs_provided + n_dynamic_provided + n_static_provided,
                                                                  n_inputs_provided,
                                                                  n_dynamic_provided + 1, n_static_provided))
-            elif 'Wrong number of inputs for LE.make_node' in e.message:
-                got = re.search('(?<=got )\d+', e.message).group()
-                expected = re.search('(?<=expected )\d+', e.message).group()
+            elif 'Wrong number of inputs for LE.make_node' in str(e):
+                got = re.search('(?<=got )\d+', str(e)).group()
+                expected = re.search('(?<=expected )\d+', str(e)).group()
                 raise TypeError("A theano function has been given the wrong number of arguments (you provided {0} and "
                                 "it expected {1}. Check all theano functions used in the model (e.g. switch, comparisons)"
                                 " have the correct number of inputs".format(got, expected))
-            elif 'instance' in e.message:
+            elif 'instance' in str(e):
                 raise TypeError('{0}\n'
                                 'This probably means a variable in the model function is not defined. '
                                 'Check for typos in argument and variable names')
