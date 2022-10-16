@@ -764,6 +764,8 @@ class DMModel():
 
             self.raw_fit_values = self.map_estimate
 
+            if 'phi' in self.map_estimate:
+                print(f"phi: {self.map_estimate['phi']}")
 
         self.fit_complete = True
         # need to backwards transform these values
